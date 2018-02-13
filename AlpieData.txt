@@ -1,0 +1,503 @@
+// ==UserScript==
+// @name         PlayerData
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @include  /^https://pl126\.plemiona\.pl/game\.php*.*screen=settings*.*/
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    var WAIT_FOR_NEXT_GET_QUEUE = [];
+    var GAME_URL = "https://pl126.plemiona.pl/game.php";
+    var SPEAR  = 0, SWORD = 1, AXE = 2, ARCHER = 3, SPY = 4, LIGHT = 5, MARCHER = 6, HEAVY = 7, RAM = 8, CATAPULT = 9, KNIGHT = 10, SNOB = 11;
+    var UNITS_CLASSES = ['.unit-item-spear', '.unit-item-sword', '.unit-item-axe', '.unit-item-archer', '.unit-item-spy', '.unit-item-light', '.unit-item-marcher', '.unit-item-heavy', '.unit-item-ram', '.unit-item-catapult', '.unit-item-knight', '.unit-item-snob'];
+    var UNITS_POPULATION = [1,1,1,1,2,4,5,6,5,8,1,100];
+    var UNITS_DEF = [SPEAR,SWORD,ARCHER,HEAVY];
+    var UNITS_OFF = [AXE,LIGHT,MARCHER,RAM,CATAPULT,KNIGHT,SNOB];
+    var VILLAGE_K = [45, 35];
+
+    var SPEC_NEW = 0;
+    var SPEC_OFF = 1;
+    var SPEC_DEF = 2;
+    var SPEC_MIX = 4;
+    var SPEC_SPY = 3;
+
+    var SPEC_SMALL_OFF = 10;
+    var SPEC_MEDIUM_OFF = 11;
+    var SPEC_BIG_OFF = 12;
+
+    var SPEC_UNDEFINED = 100;
+
+    if (!Array.prototype.last){
+        Array.prototype.last = function(){
+            return this[this.length - 1];
+        };
+    }
+
+    function getParameters(url, param){
+        var urlC = new URL(url);
+        var parVal = urlC.searchParams.get(param);
+        return parVal;
+    }
+
+    function createURL(base, village, screen, mode, t){
+        var url;
+        if (base !== undefined &&base !== null){
+            url = new URL(base);
+
+            if (village !== undefined &&village !== null){
+                url.searchParams.set('village', village);
+            }
+
+            if (screen !== undefined &&screen !== null){
+                url.searchParams.set('screen', screen);
+            }
+
+            if (mode !== undefined &&mode !== null){
+                url.searchParams.set('mode', mode);
+            }
+
+            if (t !== undefined &&t !== null){
+                url.searchParams.set('t', t);
+            }
+        }
+        return url;
+    }
+
+    function xhrSendPromise(req, promise){
+        return new Promise(function(resolve, reject) {
+            promise.then(function(values) {
+                req.send();
+                setTimeout(function(){
+                    resolve();
+                }, 250 + Math.random() * 100);
+            });
+        });
+    }
+
+    function xhrSend(req){
+        return new Promise(function(resolve, reject) {
+             req.send();
+             setTimeout(function(){
+                resolve();
+             }, 250 + Math.random() * 100);
+        });
+    }
+    function getPage(url){
+        return new Promise(function(resolve, reject) {
+            var req = new XMLHttpRequest();
+            req.open('GET', url);
+            req.onload = function() {
+                if (req.status == 200) {
+                    var requestedBody = document.createElement("body");
+                    requestedBody.innerHTML = req.responseText;
+                    resolve(req.response);
+                }
+                else {
+                    reject();
+                }
+            };
+            req.onerror = function() {
+                reject(Error("Network Error"));
+            };
+
+            if(WAIT_FOR_NEXT_GET_QUEUE.length === 0){
+            WAIT_FOR_NEXT_GET_QUEUE.push(xhrSend(req));
+            }
+            else{
+                var newPromise = xhrSendPromise(req, WAIT_FOR_NEXT_GET_QUEUE.last());
+                WAIT_FOR_NEXT_GET_QUEUE.push(newPromise);
+            }
+        });
+    }
+
+    function getGuildRankFromPage(data){
+        return {'guildRank':$(data).find('tr.selected').find('.lit-item').get()[1].innerText};
+    }
+
+    function getDataFromGuildMembersPage(){
+        return new Promise(function(resolve, reject) {
+            var url = createURL(GAME_URL, null, "ally", "members", getParameters(window.location.href, 't'));
+            getPage(url).then(function(response) {
+                var guildRank = getGuildRankFromPage(response);
+                resolve(guildRank);
+            }, function(error) {
+                reject(error);
+            });
+        });
+    }
+
+    function getPlayerDataFromPlayerInfoPage(data){
+         var playerInfo = $(data).find('#player_info').get()[0];
+
+        var globalRank = playerInfo.children["0"].children[3].children[1].innerText.split(".").join("").trim();
+        globalRank = parseInt(globalRank);
+        var ally = playerInfo.children["0"].children[5].children[1].childNodes[1].innerHTML;
+
+        var points = playerInfo.children["0"].children[2].children[1].innerText.split(".").join("").trim();
+        points = parseInt(points);
+
+        //var rw = playerInfo.children["0"].children[4].childNodes[3].innerText.split(" ").join("").split("(")[0].split(".").join("").trim();
+        //rw = parseInt(rw);
+
+        var tooltipData = $(data).find('td.tooltip').get()[0].title;
+        var rao = tooltipData.split("::");
+        rao[0] = rao[0].replace("Jako agresor: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("");
+        rao[1] = rao[1].replace("<br></td>Jako wspieraj¹cy: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("").trim();
+
+        var ra = parseInt(rao[0]);
+        var rw = parseInt(rao[1]);
+
+        var playerName = playerInfo.children["0"].children["0"].children["0"].innerText.trim();
+
+        return {
+            'playerName':playerName,
+            'globalRank':globalRank,
+            'ally': ally,
+            'points': points,
+            //'rw': rw,
+            'rw': rw,
+            'ra': ra
+        };
+    }
+    function getDataFromPlayerInfoPage(){
+        return new Promise(function(resolve, reject) {
+            var url = createURL(GAME_URL, null, "info_player", null, getParameters(window.location.href, 't'));
+            getPage(url).then(function(response) {
+                var playerData = getPlayerDataFromPlayerInfoPage(response);
+                resolve(playerData);
+            }, function(error) {
+                reject(error);
+            });
+        });
+    }
+
+    function getCombatAchievementsFromAchievementsPage(data){
+        var combatAchievementsData = $(data).find('div.award-group').get()[1].children[1];
+
+        var plunderer = 0;
+        var robber = 0;
+        for (var i = 0; i < combatAchievementsData.children.length; i++) {
+            if(combatAchievementsData.children[i].innerText.includes("Grabie¿ca")){
+
+                if(combatAchievementsData.children[i].innerText.includes("Razem")){
+                    plunderer = combatAchievementsData.children[i].children[1].children[2].innerText.replace('Razem: ','').trim().split('.').join('');
+                }
+                else{
+                    plunderer = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
+                }
+            }
+            else if(combatAchievementsData.children[i].innerText.includes("Rabuœ")){
+
+                if(combatAchievementsData.children[i].innerText.includes("Razem")){
+                    robber = combatAchievementsData.children[i].children[1].children[2].innerText.replace('Razem: ','').trim().split('.').join('');
+                }
+                else{
+                    robber = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
+                }
+            }
+        }
+        plunderer =  parseInt(plunderer);
+        robber =  parseInt(robber);
+        return {
+           'plunderer': plunderer,
+           'robber': robber
+        };
+    }
+
+    function getDataFromAchievementsPage(){
+        return new Promise(function(resolve, reject) {
+            var url = createURL(GAME_URL, null, "info_player", 'awards', getParameters(window.location.href, 't'));
+            getPage(url).then(function(response) {
+                var playerData = getCombatAchievementsFromAchievementsPage(response);
+                resolve(playerData);
+            }, function(error) {
+                reject(error);
+            });
+        });
+    }
+
+    function getUnitsInVillage(data){
+        var homeUnits =  Array(UNITS_CLASSES.length).fill(0);
+        var tables = $(data).find('#units_home').get()[0];
+        var homeUnitTable = tables.children[0].children[1];
+        for(var i = 0; i< UNITS_CLASSES.length; i++){
+            var col = $(homeUnitTable).find(UNITS_CLASSES[i]).not('.hidden').get();
+            for(var j = 0; j< col.length; j++){
+                homeUnits[i] = homeUnits[i] + parseInt(col[j].innerHTML);
+            }
+        }
+        return homeUnits;
+    }
+    function getScavengingUnits(data){
+        var scavengingUnits =  Array(UNITS_CLASSES.length).fill(0);
+        if(data.includes("Misje zbieractwa")){
+            var tables = $(data).find('table').get().last();
+            var scavengingUnitsTable = tables.children[0].children[tables.children[0].children.length-1];
+
+            for(var i = 0; i< UNITS_CLASSES.length; i++){
+                var col = $(scavengingUnitsTable).find(UNITS_CLASSES[i]).not('.hidden').get();
+                for(var j = 0; j< col.length; j++){
+                    scavengingUnits[i] = scavengingUnits[i] + parseInt(col[j].innerHTML);
+                }
+            }
+        }
+        return scavengingUnits;
+    }
+    function getTransitUnits(data){
+        var unitsTransitPage = $(data).find('#units_transit').get();
+        var unitsTransit =  Array(UNITS_CLASSES.length).fill(0);
+        for(var i = 0; i< UNITS_CLASSES.length; i++){
+            var col = $(unitsTransitPage).find(UNITS_CLASSES[i]).not('.hidden').get();
+            for(var j = 0; j< col.length; j++){
+                unitsTransit[i] = unitsTransit[i] + parseInt(col[j].innerHTML);
+            }
+        }
+        return unitsTransit;
+    }
+
+    function getAwayUnits(data){
+        var unitsAwayPage = $(data).find('#units_away').get();
+        var unitsAway =  Array(UNITS_CLASSES.length).fill(0);
+        for(var i = 0; i< UNITS_CLASSES.length; i++){
+            var col = $(unitsAwayPage).find(UNITS_CLASSES[i]).not('.hidden').get();
+            for(var j = 0; j< col.length; j++){
+                unitsAway[i] += parseInt(col[j].innerHTML);
+            }
+        }
+        return unitsAway;
+    }
+
+    function getCoords(data){
+        var villageData = $(data).find('#menu_row2').find(".box-item").find(".nowrap").not(".tooltip-delayed").get()[0].innerText;
+        var coords = villageData.split(")")[0].split("(")[1].split("|");
+        return {"x": coords[0], "y": coords[1]};
+    }
+    function getK(data){
+        var villageData = $(data).find('#menu_row2').find(".box-item").find(".nowrap").not(".tooltip-delayed").get()[0].innerText;
+        var k = parseInt(villageData.split("K")[1]);
+        return k;
+    }
+
+
+    function getDataFromPlacePage(data){
+        var village = {};
+        village.units = {};
+        village.coords = getCoords(data);
+        village.k = getK(data);
+        village.units.awayUnits =  getAwayUnits(data);
+        village.units.transitUnits = getTransitUnits(data);
+        village.units.scavengingUnits = getScavengingUnits(data);
+        village.units.inVillageUnits = getUnitsInVillage(data);
+
+        return village;
+    }
+
+    function getVillagesIdsFromOverviewVillages(data){
+        var productionTable = $(data).find('#production_table').get()[0].children["0"];
+        var villagesIds = [];
+        for (var i = 1; i < productionTable.children.length; i ++){
+            villagesIds.push(productionTable.children[i].cells[1].children["0"].attributes[1].value);
+        }
+        return villagesIds;
+    }
+
+    function getOverviewVillagesPage(){
+            var url = createURL(GAME_URL, null, "overview_villages", "prod", getParameters(window.location.href, 't'));
+            return getPage(url);
+    }
+
+     function getTotalUnits(data){
+        var total = Array(UNITS_CLASSES.length).fill(0);
+        for (var i = 0; i < UNITS_CLASSES.length; i++){
+            for (var keys in data.units){
+                total[i] += data.units[keys][i];
+            }
+        }
+        data.units.totalUnits = total;
+        return data;
+    }
+
+    function getVillagePopulation(data){
+        var totalDEF = 0;
+        for (var i = 0; i< UNITS_DEF.length; i++){
+            totalDEF += data.units.totalUnits[UNITS_DEF[i]] * UNITS_POPULATION[UNITS_DEF[i]];
+        }
+        var totalOFF = 0;
+        for ( i = 0; i< UNITS_OFF.length; i++){
+            totalOFF += data.units.totalUnits[UNITS_OFF[i]] * UNITS_POPULATION[UNITS_OFF[i]];
+        }
+
+        data.totalUnits  = {}
+        data.units.totalSPY = data.totalUnits[SPY] * UNITS_POPULATION[SPY];
+        data.units.totalDEF = totalDEF;
+        data.units.totalOFF = totalOFF;
+        return data;
+    }
+
+    function getVillageSpec(data){
+        if (data.units.totalDEF < 100 && data.units.totalOFF < 100 && data.units.totalSPY < 100){data.spec = SPEC_NEW;}
+        else if ((data.units.totalDEF +data.units.totalOFF) > 100  && data.units.totalDEF > data.units.totalOFF ){data.spec = SPEC_DEF;}
+        else if ((data.units.totalDEF +data.units.totalOFF) > 100 && data.units.totalDEF < data.units.totalOFF){
+            if (data.units.totalOFF < 1000 ){data.spec = SPEC_SMALL_OFF;}
+            else if (data.units.totalOFF < 5000 ){data.spec = SPEC_MEDIUM_OFF;}
+            else {data.spec = SPEC_BIG_OFF;}
+        }
+        else if (data.units.totalSPY > 2000){data.spec = SPEC_SPY;}
+        else {data.units.spec = SPEC_UNDEFINED;}
+        return data;
+
+    }
+
+    function getPlayerUnitsFromVillages(villagesIds){
+        var url;
+        var promises = [];
+        for (var i = 0; i < villagesIds.length; i++){
+            url = createURL(GAME_URL, villagesIds[i], "place","units", getParameters(window.location.href, 't'));
+            promises.push(getPage(url).then(getDataFromPlacePage).then(getTotalUnits).then(getVillagePopulation).then(getVillageSpec));
+        }
+        return Promise.all(promises);
+    }
+
+
+
+
+    function getPlayerUnits(){
+        return new Promise(function(resolve, reject) {
+            getOverviewVillagesPage().then(getVillagesIdsFromOverviewVillages).then(getPlayerUnitsFromVillages).then(function(response){resolve({"villages": response});});
+
+
+
+        });
+    }
+
+    function jsonsConcat(data){
+        var newJson = {};
+        for (var i = 0; i < data.length; i++){
+            $.extend( true, newJson, data[i]);
+        }
+        return newJson;
+    }
+
+    function convertToAplieData(data){
+        console.log(data);
+       var vilagesOnK = Array(VILLAGE_K.length + 1).fill(0);
+       for (var i = 0; i< data.villages.length; i++){
+          for (var j = 0; j< vilagesOnK.length - 1; j++){
+              if(data.villages[i].k === VILLAGE_K[j]){
+                  vilagesOnK[j] += 1;
+                  break;
+              }
+              else{
+                  vilagesOnK[vilagesOnK.length -1 ] += 1;
+                  break;
+              }
+          }
+       }
+
+        var villageSpec = {}
+        villageSpec.new = 0;
+        villageSpec.def = 0;
+        villageSpec.mix = 0;
+        villageSpec.spy = 0;
+        villageSpec.smallOff = 0;
+        villageSpec.midiumOFF = 0;
+        villageSpec.bigOFF = 0;
+        villageSpec.undefined = 0;
+        for (var i = 0; i< data.villages.length; i++){
+            if(data.villages[i].spec === SPEC_NEW){ villageSpec.new ++;}
+            else if(data.villages[i].spec === SPEC_DEF){villageSpec.def ++;}
+            else if(data.villages[i].spec === SPEC_MIX){villageSpec.mix ++;}
+            else if(data.villages[i].spec === SPEC_SPY){villageSpec.spy ++;}
+            else if(data.villages[i].spec === SPEC_SMALL_OFF){villageSpec.smallOff++;}
+            else if(data.villages[i].spec === SPEC_MEDIUM_OFF){villageSpec.midiumOFF++;}
+            else if(data.villages[i].spec === SPEC_BIG_OFF){villageSpec.bigOFF++;}
+            else if(data.villages[i].spec === SPEC_UNDEFINED){villageSpec.undefined++;}
+        }
+
+
+        var availableDEFUnits = Array(UNITS_CLASSES.length).fill(0);
+        for (var i = 0; i< data.villages.length; i++){
+            for (var j = 0; j< UNITS_CLASSES.length; j++){
+                availableDEFUnits[j] += data.villages[i].units.scavengingUnits[j];
+                availableDEFUnits[j] += data.villages[i].units.inVillageUnits[j];
+            }
+        }
+
+        var awayDEFUnits = Array(UNITS_CLASSES.length).fill(0);
+        for (var i = 0; i< data.villages.length; i++){
+            for (var j = 0; j< UNITS_CLASSES.length; j++){
+                awayDEFUnits[j] += data.villages[i].units.awayUnits[j];
+            }
+        }
+
+        var returnData = []
+        returnData.push(data.playerName);
+        returnData.push(data.ally);
+        returnData.push("");
+        returnData.push(data.globalRank);
+        returnData.push(data.guildRank);
+        returnData.push(data.ra);
+        returnData.push("");
+        returnData.push(data.rw);
+        returnData.push("");
+        returnData.push(data.robber);
+        returnData.push(data.plunderer);
+        returnData.push(data.villages.length);
+        returnData.push(villageSpec.def);
+        returnData.push(villageSpec.spy);
+        returnData.push(villageSpec.smallOff);
+        returnData.push(villageSpec.midiumOFF);
+        returnData.push(villageSpec.bigOFF);
+        returnData.push(villageSpec.new);
+        returnData.push(villageSpec.mix );
+        returnData.push(vilagesOnK[0]);
+        returnData.push(vilagesOnK[1]);
+        returnData.push(vilagesOnK[2]);
+        returnData.push("");
+        returnData.push(availableDEFUnits[UNITS_DEF[0]]);
+        returnData.push(availableDEFUnits[UNITS_DEF[1]]);
+        returnData.push(availableDEFUnits[UNITS_DEF[2]]);
+        returnData.push(availableDEFUnits[UNITS_DEF[3]]);
+        returnData.push(availableDEFUnits[SPY]);
+        returnData.push("");
+        returnData.push(awayDEFUnits[UNITS_DEF[0]]);
+        returnData.push(awayDEFUnits[UNITS_DEF[1]]);
+        returnData.push(awayDEFUnits[UNITS_DEF[2]]);
+        returnData.push(awayDEFUnits[UNITS_DEF[3]]);
+        returnData.push(awayDEFUnits[SPY]);
+
+
+        return returnData.join("\n");
+
+    }
+    //var promises = [];
+    //promises.push(getDataFromGuildMembersPage());
+    //promises.push(getDataFromPlayerInfoPage());
+    //promises.push(getDataFromAchievementsPage());
+    //promises.push(getPlayerUnits());
+    //Promise.all(promises).then(jsonsConcat).then(convertToAplieData);
+    // Your code here...
+    var row = document.getElementById("menu_row");
+    var cell1 = row.insertCell(0);
+    cell1.innerHTML = '<p><a id="skryptDarka123" href="#">SkryptDarka</a></p>';
+
+    document.getElementById('skryptDarka123').onclick = function (e) {
+    e.preventDefault();
+
+        var promises = [];
+        promises.push(getDataFromGuildMembersPage());
+        promises.push(getDataFromPlayerInfoPage());
+        promises.push(getDataFromAchievementsPage());
+        promises.push(getPlayerUnits());
+        Promise.all(promises).then(jsonsConcat).then(convertToAplieData).then(function(data){Dialog.show("okienko_komunikatu",'<textarea name="post" maxlength="100" cols="20" rows="30" class="myCustomTextarea">'+ data +'</textarea>');});
+
+    };
+
+
+
+})();
