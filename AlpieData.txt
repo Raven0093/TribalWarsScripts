@@ -144,8 +144,13 @@
 
         var globalRank = playerInfo.children["0"].children[3].children[1].innerText.split(".").join("").trim();
         globalRank = parseInt(globalRank);
-        var ally = playerInfo.children["0"].children[5].children[1].childNodes[1].innerHTML;
-
+        var ally = ""
+        try{
+            ally = playerInfo.children["0"].children[5].children[1].childNodes[1].innerHTML;
+        }
+        catch(err) {
+            ally = "Brak"
+        }
         var points = playerInfo.children["0"].children[2].children[1].innerText.split(".").join("").trim();
         points = parseInt(points);
 
@@ -306,10 +311,11 @@
     }
 
     function getVillagesIdsFromOverviewVillages(data){
-        var productionTable = $(data).find('#production_table').get()[0].children["0"];
+        var productionTable = $(data).find('#production_table').find("span[data-id]").get();
         var villagesIds = [];
-        for (var i = 1; i < productionTable.children.length; i ++){
-            villagesIds.push(productionTable.children[i].cells[1].children["0"].attributes[1].value);
+
+        for (var i = 1; i < productionTable.length; i ++){
+            villagesIds.push(productionTable[i].getAttribute("data-id"));
         }
         return villagesIds;
     }
