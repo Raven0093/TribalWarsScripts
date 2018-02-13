@@ -158,12 +158,22 @@
         //rw = parseInt(rw);
 
         var tooltipData = $(data).find('td.tooltip').get()[0].title;
-        var rao = tooltipData.split("::");
-        rao[0] = rao[0].replace("Jako agresor: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("");
-        rao[1] = rao[1].replace("<br></td>Jako wspieraj¹cy: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("").trim();
+        var titleString = tooltipData.split('<span class="grey">.</span>').join("").split(" ").join("").trim();
 
-        var ra = parseInt(rao[0]);
-        var rw = parseInt(rao[1]);
+        var ra = 0, rw = 0, ro = 0;
+        try{ra = parseInt(titleString.match(/agresor:[1-9][0-9]*/g)[0].replace("agresor:",""));}catch(err){}
+        try{rw = parseInt(titleString.match(/wspieraj¹cy:[1-9][0-9]*/g)[0].replace("wspieraj¹cy:",""));}catch(err){}
+        try{ro = parseInt(titleString.match(/obroñca:[1-9][0-9]*/g)[0].replace("obroñca:",""));}catch(err){}
+
+        //console.log(titleString)
+        //var rao = tooltipData.split("::");
+
+
+        //rao[0] = rao[0].replace("Jako agresor: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("");
+        //rao[1] = rao[1].replace("<br></td>Jako wspieraj¹cy: ","").split(" (")[0].split("<span class=\"grey\">.</span>").join("").trim();
+
+        //var ra = parseInt(rao[0]);
+        //var rw = parseInt(rao[1]);
 
         var playerName = playerInfo.children["0"].children["0"].children["0"].innerText.trim();
 
@@ -172,8 +182,8 @@
             'globalRank':globalRank,
             'ally': ally,
             'points': points,
-            //'rw': rw,
             'rw': rw,
+            'ro': ro,
             'ra': ra
         };
     }
@@ -313,8 +323,8 @@
     function getVillagesIdsFromOverviewVillages(data){
         var productionTable = $(data).find('#production_table').find("span[data-id]").get();
         var villagesIds = [];
+        for (var i = 0; i < productionTable.length; i ++){
 
-        for (var i = 1; i < productionTable.length; i ++){
             villagesIds.push(productionTable[i].getAttribute("data-id"));
         }
         return villagesIds;
@@ -449,14 +459,14 @@
             }
         }
 
-        var returnData = []
+        var returnData = [];
         returnData.push(data.playerName);
         returnData.push(data.ally);
         returnData.push("");
         returnData.push(data.globalRank);
         returnData.push(data.guildRank);
         returnData.push(data.ra);
-        returnData.push("");
+        returnData.push(data.ro);
         returnData.push(data.rw);
         returnData.push("");
         returnData.push(data.robber);
