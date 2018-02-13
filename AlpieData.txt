@@ -29,7 +29,7 @@
     var SPEC_SMALL_OFF = 10;
     var SPEC_MEDIUM_OFF = 11;
     var SPEC_BIG_OFF = 12;
-
+    var SPEC_FULL_OFF = 13;
     var SPEC_UNDEFINED = 100;
 
     if (!Array.prototype.last){
@@ -356,6 +356,7 @@
             totalOFF += data.units.totalUnits[UNITS_OFF[i]] * UNITS_POPULATION[UNITS_OFF[i]];
         }
 
+
         data.totalUnits  = {}
         data.units.totalSPY = data.totalUnits[SPY] * UNITS_POPULATION[SPY];
         data.units.totalDEF = totalDEF;
@@ -367,9 +368,10 @@
         if (data.units.totalDEF < 100 && data.units.totalOFF < 100 && data.units.totalSPY < 100){data.spec = SPEC_NEW;}
         else if ((data.units.totalDEF +data.units.totalOFF) > 100  && data.units.totalDEF > data.units.totalOFF ){data.spec = SPEC_DEF;}
         else if ((data.units.totalDEF +data.units.totalOFF) > 100 && data.units.totalDEF < data.units.totalOFF){
-            if (data.units.totalOFF < 1000 ){data.spec = SPEC_SMALL_OFF;}
-            else if (data.units.totalOFF < 5000 ){data.spec = SPEC_MEDIUM_OFF;}
-            else {data.spec = SPEC_BIG_OFF;}
+            if (data.units.totalUnits[AXE] > 5000 &&  data.units.totalUnits[LIGHT] > 2500 && ata.units.totalUnits[RAM] > 300){data.spec = SPEC_FULL_OFF;}
+            else if (data.units.totalUnits[AXE] > 2500 &&  data.units.totalUnits[LIGHT] > 1000){data.spec = SPEC_BIG_OFF;}
+            else if (data.units.totalUnits[AXE] > 1000 &&  data.units.totalUnits[LIGHT] > 500){data.spec = SPEC_MEDIUM_OFF;}
+            else {data.spec = SPEC_SMALL_OFF;}
         }
         else if (data.units.totalSPY > 2000){data.spec = SPEC_SPY;}
         else {data.units.spec = SPEC_UNDEFINED;}
@@ -431,6 +433,7 @@
         villageSpec.smallOff = 0;
         villageSpec.midiumOFF = 0;
         villageSpec.bigOFF = 0;
+        villageSpec.fullOff = 0
         villageSpec.undefined = 0;
         for (var i = 0; i< data.villages.length; i++){
             if(data.villages[i].spec === SPEC_NEW){ villageSpec.new ++;}
@@ -440,6 +443,7 @@
             else if(data.villages[i].spec === SPEC_SMALL_OFF){villageSpec.smallOff++;}
             else if(data.villages[i].spec === SPEC_MEDIUM_OFF){villageSpec.midiumOFF++;}
             else if(data.villages[i].spec === SPEC_BIG_OFF){villageSpec.bigOFF++;}
+            else if(data.villages[i].spec === SPEC_FULL_OFF){villageSpec.fullOff++;}
             else if(data.villages[i].spec === SPEC_UNDEFINED){villageSpec.undefined++;}
         }
 
@@ -477,6 +481,7 @@
         returnData.push(villageSpec.smallOff);
         returnData.push(villageSpec.midiumOFF);
         returnData.push(villageSpec.bigOFF);
+        returnData.push(villageSpec.fullOff)
         returnData.push(villageSpec.new);
         returnData.push(villageSpec.mix );
         returnData.push(vilagesOnK[0]);
