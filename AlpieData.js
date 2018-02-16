@@ -227,7 +227,7 @@ TribalWarsUnits.Config.SPEC.OFF =  [
     [TribalWarsUnits.Config.SPEC.IDS.BIG_OFF, [TribalWarsUnits.Config.AXE, TribalWarsUnits.Config.LIGHT], [5000, 2500]],
     [TribalWarsUnits.Config.SPEC.IDS.MEDIUM_OFF, [TribalWarsUnits.Config.AXE, TribalWarsUnits.Config.LIGHT], [2500, 1000]],
     [TribalWarsUnits.Config.SPEC.IDS.SMALL_OFF, [TribalWarsUnits.Config.AXE, TribalWarsUnits.Config.LIGHT], [1000, 500]],
-    [TribalWarsUnits.Config.SPEC.IDS.NEW_OFF, [TribalWarsUnits.Config.AXE, TribalWarsUnits.Config.LIGHT], [500, 100]],
+    [TribalWarsUnits.Config.SPEC.IDS.NEW_OFF, [TribalWarsUnits.Config.AXE, TribalWarsUnits.Config.LIGHT], [100, 50]],
     [TribalWarsUnits.Config.SPEC.IDS.OFF_LK, [TribalWarsUnits.Config.LIGHT], [2500]],
 ];
 
