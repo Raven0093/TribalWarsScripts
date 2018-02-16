@@ -848,12 +848,6 @@ cell1.innerHTML = '<p><a id="skryptDarka123" href="#">SkryptDarka</a></p>';
 
 document.getElementById('skryptDarka123').onclick = function (e) {
     e.preventDefault();
-
-    var promises = [];
-    promises.push(getDataFromGuildMembersPage());
-    promises.push(getDataFromPlayerInfoPage());
-    promises.push(getDataFromAchievementsPage());
-    promises.push(getPlayerUnits());
     TribalWarsPlayerDataHelper.getPlayerData().then(convertToAplieData).then(function(data){Dialog.show("okienko_komunikatu",'<textarea name="post" maxlength="100" cols="20" rows="30" class="myCustomTextarea">'+ data +'</textarea>');});
 
 };
