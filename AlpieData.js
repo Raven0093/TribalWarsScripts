@@ -840,12 +840,22 @@ function convertToAplieData(player){
 
     return returnData.join("\n");
 
-    }
+}
 
+var row = document.getElementById("menu_row");
+var cell1 = row.insertCell(0);
+cell1.innerHTML = '<p><a id="skryptDarka123" href="#">SkryptDarka</a></p>';
 
+document.getElementById('skryptDarka123').onclick = function (e) {
+    e.preventDefault();
 
-var url = "https://pl126.plemiona.pl/game.php?village=2015&screen=place&mode=units";
-TribalWarsPlayerDataHelper.getPlayerData().then(convertToAplieData).then(console.log);
+    var promises = [];
+    promises.push(getDataFromGuildMembersPage());
+    promises.push(getDataFromPlayerInfoPage());
+    promises.push(getDataFromAchievementsPage());
+    promises.push(getPlayerUnits());
+    TribalWarsPlayerDataHelper.getPlayerData().then(convertToAplieData).then(function(data){Dialog.show("okienko_komunikatu",'<textarea name="post" maxlength="100" cols="20" rows="30" class="myCustomTextarea">'+ data +'</textarea>');});
 
+};
 //var url = "https://pl126.plemiona.pl/game.php?village=2015&screen=info_player#514;458";
 //getPage(url).then(TribalWarsHtmlParser.ProfilePage.getTribeName).then(console.log);
