@@ -429,6 +429,16 @@ TribalWarsHtmlParser.TroopsPage.getUnitsStructure = function(){
     return units;
 };
 
+TribalWarsHtmlParser.TroopsPage.getSumPopulation = function(units){
+    var pop = 0;
+    for (var unitHtmlClass in TribalWarsHtmlParser.Config.UNITS_HTML_CLASSES) {
+        pop += units[unitHtmlClass] * TribalWarsUnits.Config.POPULATION[unitHtmlClass];
+    }
+    return pop;
+};
+
+
+
 TribalWarsHtmlParser.TroopsPage.unitsHtmlRowToUnits = function(row){
     var units = TribalWarsHtmlParser.TroopsPage.getUnitsStructure();
     for (var unitHtmlClass in TribalWarsHtmlParser.Config.UNITS_HTML_CLASSES) {
@@ -837,6 +847,10 @@ function convertToAplieData(player){
          player.units.scavenging,
          player.units.trasitOther]
     )));
+    returnData.push("");
+    returnData.push(TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn));
+
+    
 
     return returnData.join("\n");
 
