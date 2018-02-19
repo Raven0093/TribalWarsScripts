@@ -865,9 +865,20 @@ function convertToAplieData(player){
     )));
     returnData.push("WCIELENI REKRUCI");
     returnData.push(TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn));
-
     returnData.push("");
     returnData.push(player.name);
+    returnData.push((player.points/TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn)).toString().replace(".",","));
+    returnData.push(player.villages.length*300);
+    
+    var def = player.units.totalOwn[TribalWarsUnits.Config.SPEAR] +
+        player.units.totalOwn[TribalWarsUnits.Config.SWORD] + 
+        player.units.totalOwn[TribalWarsUnits.Config.ARCHER] + 
+        (player.units.totalOwn[TribalWarsUnits.Config.HEAVY] * 6);
+
+    returnData.push(def);
+    returnData.push(player.villages.length*100);
+    returnData.push(player.units.totalOwn[TribalWarsUnits.Config.SPY]);
+    returnData.push(Math.floor(def/120));
 
     return returnData.join("\n");
 
