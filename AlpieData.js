@@ -812,7 +812,7 @@ function convertToAplieData(player){
     var returnData = [];
 
 
-
+    returnData.push("");
     returnData.push(getDate());
     returnData.push(player.name);
     returnData.push(player.points);
