@@ -824,7 +824,7 @@ function convertToAplieData(player){
     returnData.push(player.rs);
     returnData.push(player.plunderer);
     returnData.push(player.robber);
-    returnData.push("");
+    returnData.push("WIOSKI");
     returnData.push(player.villages.length);
     returnData.push(player.getVillageOnK(45));
     returnData.push(player.getVillageOnK(35));
