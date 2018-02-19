@@ -408,7 +408,7 @@ TribalWarsHtmlParser.AchievementsPage.getAchievements = function(page, achieveme
     }
     catch(err){
         for (var j = 0; j < achievementsNameArray.length; j++){
-            achievementsResults[j] = "brak danych";
+            achievementsResults[j] = "błąd pobierania";
         }
     }
 
