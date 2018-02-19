@@ -376,21 +376,26 @@ TribalWarsHtmlParser.ProfilePage.getPoints = function(page){
 
 TribalWarsHtmlParser.AchievementsPage = {};
 TribalWarsHtmlParser.AchievementsPage.Constants = {
-    TOTAL_STRING : "Razem: "
+    TOTAL_STRING : "Razem: ",
+    COMBAT_ACHIEVEMENTS: "Odznaczenia bojowe"
 };
 TribalWarsHtmlParser.AchievementsPage.getAchievements = function(page, achievementsNameArray) {
     var achievementsResults = Array(achievementsNameArray.length).fill(0);
-    var combatAchievementsData = TribalWarsHtmlParser.findElements(page, 'div.award-group')[1];
+    var combatAchievementsData = TribalWarsHtmlParser.findElements(page, 'div.award-group');
     if (combatAchievementsData){
-        combatAchievementsData = combatAchievementsData.children[1];
-        for (var i = 0; i < combatAchievementsData.children.length; i++) {
-            for (var j = 0; j < achievementsNameArray.length; j++){
-                if(combatAchievementsData.children[i].innerText.includes(achievementsNameArray[j])){
-                    if(combatAchievementsData.children[i].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING)){
-                        achievementsResults[j] = combatAchievementsData.children[i].children[1].children[2].innerText.replace(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING,'').trim().split('.').join('');
-                    }
-                    else{
-                        achievementsResults[j] = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
+        for (var j = 0; j< combatAchievementsData.length; j++){
+            if(combatAchievementsData[j].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.COMBAT_ACHIEVEMENTS)){
+                combatAchievementsData = combatAchievementsData[j].children[1];
+                for (var i = 0; i < combatAchievementsData.children.length; i++) {
+                    for (var j = 0; j < achievementsNameArray.length; j++){
+                        if(combatAchievementsData.children[i].innerText.includes(achievementsNameArray[j])){
+                            if(combatAchievementsData.children[i].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING)){
+                                achievementsResults[j] = combatAchievementsData.children[i].children[1].children[2].innerText.replace(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING,'').trim().split('.').join('');
+                            }
+                            else{
+                                achievementsResults[j] = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
+                            }
+                        }
                     }
                 }
             }
@@ -831,26 +836,27 @@ function convertToAplieData(player){
     ]));
     returnData.push(player.getSpec(TribalWarsUnits.Config.SPEC.IDS.UNDEFINED));
 
-    returnData.push("");
+    returnData.push("WSZYSTKIE WŁASNE JEDNOSTKI");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.totalOwn));
-    returnData.push("");
+    returnData.push("DOSTĘPNE JEDNOSTKI");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.ownIn));
-    returnData.push("");
+    returnData.push("WYSŁANE WSPARCIE");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.away));
-    returnData.push("");
-    returnData.push(player.supportedPlayers.join(" - "));
-    returnData.push("");
+    returnData.push("WSPIERANI GRACZE");
+    returnData.push(player.supportedPlayers.join(String.fromCharCode(10)));
+    returnData.push("WSPARCIE W DRODZE");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.trasitSupported));
-    returnData.push("");
+    returnData.push("INNE W DRODZE");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(TribalWarsHtmlParser.TroopsPage.sumUnits(
         [player.units.trasitSupported,
          player.units.scavenging,
          player.units.trasitOther]
     )));
-    returnData.push("");
+    returnData.push("WCIELENI REKRUCI");
     returnData.push(TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn));
 
-    
+    returnData.push("");
+    returnData.push(player.name);
 
     return returnData.join("\n");
 
