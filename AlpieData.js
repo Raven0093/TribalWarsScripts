@@ -381,26 +381,37 @@ TribalWarsHtmlParser.AchievementsPage.Constants = {
 };
 TribalWarsHtmlParser.AchievementsPage.getAchievements = function(page, achievementsNameArray) {
     var achievementsResults = Array(achievementsNameArray.length).fill(0);
-    var combatAchievementsData = TribalWarsHtmlParser.findElements(page, 'div.award-group');
-    if (combatAchievementsData){
-        for (var j = 0; j< combatAchievementsData.length; j++){
-            if(combatAchievementsData[j].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.COMBAT_ACHIEVEMENTS)){
-                combatAchievementsData = combatAchievementsData[j].children[1];
-                for (var i = 0; i < combatAchievementsData.children.length; i++) {
-                    for (var j = 0; j < achievementsNameArray.length; j++){
-                        if(combatAchievementsData.children[i].innerText.includes(achievementsNameArray[j])){
-                            if(combatAchievementsData.children[i].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING)){
-                                achievementsResults[j] = combatAchievementsData.children[i].children[1].children[2].innerText.replace(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING,'').trim().split('.').join('');
+    try{
+        var combatAchievementsData = TribalWarsHtmlParser.findElements(page, 'div.award-group');
+        if (combatAchievementsData){
+            for (var j = 0; j< combatAchievementsData.length; j++){
+                if(combatAchievementsData[j].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.COMBAT_ACHIEVEMENTS)){
+                    combatAchievementsData = combatAchievementsData[j].children[1];
+                    for (var i = 0; i < combatAchievementsData.children.length; i++) {
+                        for (var j = 0; j < achievementsNameArray.length; j++){
+                            try{
+                                if(combatAchievementsData.children[i].innerText.includes(achievementsNameArray[j])){
+                                    if(combatAchievementsData.children[i].innerText.includes(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING)){
+                                        achievementsResults[j] = combatAchievementsData.children[i].children[1].children[2].innerText.replace(TribalWarsHtmlParser.AchievementsPage.Constants.TOTAL_STRING,'').trim().split('.').join('');
+                                    }
+                                    else{
+                                        achievementsResults[j] = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
+                                    }
+                                }
                             }
-                            else{
-                                achievementsResults[j] = combatAchievementsData.children[i].children[1].children[3].innerText.split("/")[0].trim().split('.').join('');
-                            }
+                            catch(err){achievementsResults[j] = "brak danych";}
                         }
                     }
                 }
             }
         }
     }
+    catch(err){
+        for (var j = 0; j < achievementsNameArray.length; j++){
+            achievementsResults[j] = "brak danych";
+        }
+    }
+
     return achievementsResults;
 };
 
@@ -871,5 +882,3 @@ document.getElementById('skryptDarka123').onclick = function (e) {
     TribalWarsPlayerDataHelper.getPlayerData().then(convertToAplieData).then(function(data){Dialog.show("okienko_komunikatu",'<textarea name="post" maxlength="100" cols="20" rows="30" class="myCustomTextarea">'+ data +'</textarea>');});
 
 };
-//var url = "https://pl126.plemiona.pl/game.php?village=2015&screen=info_player#514;458";
-//getPage(url).then(TribalWarsHtmlParser.ProfilePage.getTribeName).then(console.log);
