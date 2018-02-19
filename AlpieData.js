@@ -843,7 +843,7 @@ function convertToAplieData(player){
     returnData.push("WYSŁANE WSPARCIE");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.away));
     returnData.push("WSPIERANI GRACZE");
-    returnData.push(player.supportedPlayers.join(String.fromCharCode(10)));
+    returnData.push(player.supportedPlayers.join(" - "));
     returnData.push("WSPARCIE W DRODZE");
     returnData = returnData.concat(TribalWarsHtmlParser.TroopsPage.unitsStructureToArray(player.units.trasitSupported));
     returnData.push("INNE W DRODZE");
