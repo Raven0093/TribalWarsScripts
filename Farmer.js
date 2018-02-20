@@ -72,7 +72,7 @@ function getVillageToFarm(){
     for(var i = lastId; i < cols.children.length; i++){
 
         if(cols.children[i].hasAttribute("id") && !cols.children[i].hasAttribute("style")){
-            lastId= i
+            lastId= i;
             return cols.children[i];
         }
     }
@@ -80,7 +80,11 @@ function getVillageToFarm(){
 }
 
 function nextVillage(){
-    jQuery.event.trigger({ type: 'keydown', which: 68 });
+    if ($(document).find(".arrowRight").get()["0"]){
+        jQuery.event.trigger({ type: 'keydown', which: 68 });
+    }else{
+        location.reload();
+    }
 }
 
 function farm(iconName, maxDistance, villageToFarm){
