@@ -12,23 +12,23 @@
     'use strict';
 
   var FORUM_TABS_ORDER = [
-        'Obrona',
-        'Komunikaty',
-        'Ataki',
-        'Dyskusje',
-        'FAQ',
-        'IPN',
-        'Karczma',
-        '♦ RADA ♦',
-        '♦ Dypolomacja ♦',
-        '♦ KoszRady ♦',
-        '♦ Kosz ♦',
-        'Kosz-komunikaty',
-        'Stałe obstawy',
-        'CnB - Rada HUS & CnB',
-        'Karczma Sojuszu',
-        'Karczma Świata'
-    ];
+      'Obrona',
+      'Komunikaty',
+      'Ataki',
+      'Dyskusje',
+      'FAQ',
+      'IPN',
+      'Karczma',
+      'Zastępstwa',
+      '♦ RADA ♦',
+      '♦ Dypolomacja ♦',
+      '♦ KoszRady ♦',
+      '♦ Kosz ♦',
+      'Kosz-komunikaty',
+      'CnB - Rada HUS & CnB',
+      'Karczma Sojuszu',
+      'Karczma Świata'
+  ];
 
     var forum = document.getElementsByClassName("forum-container")[0];
     var forumTabls = forum.childNodes[1].childNodes;
