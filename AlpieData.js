@@ -886,9 +886,9 @@ function convertToAplieData(player){
 
 var row = document.getElementById("menu_row");
 var cell1 = row.insertCell(0);
-cell1.innerHTML = '<p><a id="skryptDarka123" href="#">SkryptDarka</a></p>';
+cell1.innerHTML = '<p><a id="pobierzDane" href="#">Pobierz dane</a></p>';
 
-document.getElementById('skryptDarka123').onclick = function (e) {
+document.getElementById('pobierzDane').onclick = function (e) {
     e.preventDefault();
     TribalWarsPlayerDataHelper.getPlayerData().then(convertToAplieData).then(function(data){Dialog.show("okienko_komunikatu",'<textarea name="post" maxlength="100" cols="20" rows="30" class="myCustomTextarea">'+ data +'</textarea>');});
 
