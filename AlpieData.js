@@ -837,7 +837,7 @@ function convertToAplieData(player){
     returnData.push(player.getVillageOnK(35));
     returnData.push(player.getVillageOnK(54));
     returnData.push(player.getVillageOnK(55));
-    returnData.push("");
+    returnData.push(player.getVillageOnK(36));
 
     returnData.push(player.getSpec(TribalWarsUnits.Config.SPEC.IDS.FULL_OFF));
     returnData.push(player.getSpec(TribalWarsUnits.Config.SPEC.IDS.BIG_OFF));
