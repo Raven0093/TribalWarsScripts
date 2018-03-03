@@ -620,6 +620,13 @@ HttpHelper.createURL = function(base, village, screen, mode, t){
         if (t !== undefined &&t !== null){
             url.searchParams.set('t', t);
         }
+
+        for(i = 4; i < arguments.length; i++) {
+            var arg = arguments[i]
+            if (Array.isArray(arg)) {
+                url.searchParams.set(arg[0], arg[1]);
+            }
+        }
     }
     return url;
 };
@@ -706,7 +713,7 @@ TribalWarsPlayerDataHelper.getPlayerInfoData = function(player){
         player.setTribeRank(TribalWarsHtmlParser.TribeMembersPage.getSelectedPlayerRank(response));
     }));
 
-    url = HttpHelper.createURL(GAME_URL, null, "overview_villages", "prod", HttpHelper.getParameters(window.location.href, 't'));
+    url = HttpHelper.createURL(GAME_URL, null, "overview_villages", "prod", HttpHelper.getParameters(window.location.href, 't'), ["group","0"]);
     var newPromise = new Promise(function(resolve, reject) {
         HttpHelper.getPage(url).then(function(response) {
             var villagesId = TribalWarsHtmlParser.OverviewVillagesPage.getVillagesIds(response);
@@ -828,8 +835,8 @@ function convertToAplieData(player){
     returnData.push(player.villages.length);
     returnData.push(player.getVillageOnK(45));
     returnData.push(player.getVillageOnK(35));
-    returnData.push("");
-    returnData.push("");
+    returnData.push(player.getVillageOnK(54));
+    returnData.push(player.getVillageOnK(55));
     returnData.push("");
 
     returnData.push(player.getSpec(TribalWarsUnits.Config.SPEC.IDS.FULL_OFF));
