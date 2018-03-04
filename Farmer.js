@@ -5,8 +5,13 @@
 // @description  try to take over the world!
 // @author       You
 // @include  /^https://pl126\.plemiona\.pl/game\.php*.*screen=am_farm*.*/
-// @grant        none
+// @grant GM_setValue
+// @grant GM_getValue
 // ==/UserScript==
+
+VILLAGE_ITS = ["3752","234", "1956"];
+
+GM_VILLAGE_ID = "villageId";
 
 SPEAR = 0;
 SWORD = 1;
@@ -80,7 +85,7 @@ function getVillageToFarm(){
 }
 
 function nextVillage(){
-    if ($(document).find(".arrowRight").get()["0"]){
+    if ($(document).find("#village_switch_right").get()["0"]){
         jQuery.event.trigger({ type: 'keydown', which: 68 });
     }else{
         location.reload();
@@ -118,7 +123,7 @@ function StartFarm(){
             }
         }
     }
-    setTimeout(nextVillage, 20000 + Math.random() * 1000);
+    setTimeout(nextVillage, 150000 + Math.random() * 5000);
 }
 
 StartFarm();
