@@ -12,37 +12,54 @@
     'use strict';
 
   var FORUM_TABS_ORDER = [
-      'Obrona',
-      'Komunikaty',
-      'Ataki',
-      'Dyskusje',
+      'obrona',
+      'ogłoszenia rady',
+      'ataki',
+      'dyskusje',
       'FAQ',
       'IPN',
-      'Karczma',
-      'Zastępstwa',
-      '♦ RADA ♦',
-      '♦ Dypolomacja ♦',
-      '♦ KoszRady ♦',
-      '♦ Kosz ♦',
-      'Kosz-komunikaty',
-      'CnB - Rada HUS & CnB',
-      'Karczma Sojuszu',
-      'Karczma Świata'
+      'kosz',
+      'zaufani',
+      'hus - rada',
+      'hus - dyplomacja',
+      'hus - teczki graczy',
+      'hus - kosz rady',
+      'cnb - rada',
+      'cnb - karczma sojuszu',
+      'hus - HUS & AKA',
   ];
 
     var forum = document.getElementsByClassName("forum-container")[0];
     var forumTabls = forum.childNodes[1].childNodes;
-    for (let i=0; i<FORUM_TABS_ORDER.length; i++) {
-        for (let j=0; j<forumTabls.length; j++) {
-            if (forumTabls[j].innerText && forumTabls[j].innerText.includes(FORUM_TABS_ORDER[i])){
+
+    var textElement;
+    for (let j=0; j<forumTabls.length; j++) {
+        if(forumTabls[j].nodeName === "#text"){
+            textElement = forumTabls[j].cloneNode(true);
+            break;
+        }
+    }
+
+    for (let j = forumTabls.length -1; j >= 0; j--) {
+        if(forumTabls[j].nodeName === "#text"){
+            $(forumTabls[j]).remove();
+        }
+    }
+
+    for (let i=FORUM_TABS_ORDER.length - 1 ; i>=0; i--) {
+        for (let j=forumTabls.length - 1; j >=0; j--) {
+            if (forumTabls[j].innerText && forumTabls[j].innerText.toLowerCase().includes(FORUM_TABS_ORDER[i].toLowerCase())){
                 var node1 = forumTabls[j];
-                var node2 = forumTabls[i*2+1];
-                node1.parentNode.insertBefore(node1,node2);
-                node2.parentNode.insertBefore(node2,forumTabls[j+1]);
+                node1.parentNode.insertBefore(node1,node1.parentNode.firstChild);
                 break;
             }
-
         }
-
     }
+
+    for (let j=forumTabls.length - 1; j >=0; j--) {
+        var node = forumTabls[j];
+        var newNode = textElement.cloneNode(true);
+        node.parentNode.insertBefore(newNode,node);
+    }
+
 })();
