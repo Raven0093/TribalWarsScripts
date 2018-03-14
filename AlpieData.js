@@ -10,6 +10,12 @@
 
 var GAME_URL = "https://pl126.plemiona.pl/game.php";
 
+function Round(n, k)
+{
+    var factor = Math.pow(10, k);
+    return Math.round(n*factor)/factor;
+}
+
 if (!Array.prototype.last){
     Array.prototype.last = function(){
         return this[this.length - 1];
@@ -874,7 +880,7 @@ function convertToAplieData(player){
     returnData.push(TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn));
     returnData.push("");
     returnData.push(player.name);
-    returnData.push((player.points/TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn)).toString().replace(".",","));
+    returnData.push(Round((player.points/TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn)),2).toString().replace(".",","));
     returnData.push(player.villages.length*300);
     
     var def = player.units.totalOwn[TribalWarsUnits.Config.SPEAR] +
