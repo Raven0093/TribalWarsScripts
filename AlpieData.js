@@ -881,7 +881,7 @@ function convertToAplieData(player){
     returnData.push("");
     returnData.push(player.name);
     returnData.push(Round((player.points/TribalWarsHtmlParser.TroopsPage.getSumPopulation(player.units.totalOwn)),2).toString().replace(".",","));
-    returnData.push(player.villages.length*300);
+    returnData.push(player.villages.length*600);
     
     var def = player.units.totalOwn[TribalWarsUnits.Config.SPEAR] +
         player.units.totalOwn[TribalWarsUnits.Config.SWORD] + 
