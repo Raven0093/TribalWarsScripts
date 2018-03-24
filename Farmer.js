@@ -54,7 +54,7 @@ function getUnitsA(){
         }
         catch(e){
             units[i] = parseInt($(document).find(".vis").get()["1"].children[1].children[0][UNITS[i][0]+1].attributes[3].value);
-            
+
         }
     }
     return units;
@@ -66,9 +66,9 @@ function getUnitsB(){
         try{
             units[i] = parseInt($(document).find(".vis").get()["0"].children[1].children[1][UNITS[i][0]+1].attributes[3].value);
         }
-        catch{
+        catch(e){
             units[i] = parseInt($(document).find(".vis").get()["1"].children[1].children[1][UNITS[i][0]+1].attributes[3].value);
-            
+
         }
     }
     return units;
