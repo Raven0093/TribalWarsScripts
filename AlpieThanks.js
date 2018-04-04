@@ -27,6 +27,16 @@ class Player {
     }
 }
 
+class Village {
+    constructor(coord,thanks) {
+        this.coord = coord;
+        this.thanks = thanks;
+    }
+    addThanks(number){
+        this.thanks += number;
+    }
+}
+
 TribalWarsAlpieThanksHelper = {};
 TribalWarsAlpieThanksHelper.Constants = {};
 TribalWarsAlpieThanksHelper.Constants.ALLY_IDS = [161, 1127, 3442];
@@ -185,6 +195,27 @@ TribalWarsAlpieThanksHelper.getThreadsUrlsFromPost = function(page){
     }
     return urls;
 };
+
+TribalWarsAlpieThanksHelper.getVillagesWithThanks = function(page, skipPosts = 0){
+    var posts = $(page).find(".post").get();
+    var villages = [];
+    if (posts.length > 1){
+        for (var i = 0 + skipPosts; i < posts.length; i++){
+            try{
+            var vil = $(posts[i]).find(".village_anchor").get();
+            var aVil = $(vil).find("a").get()[0];
+            var villageCoord = aVil.innerText.match(/[(][0-9]*[|][0-9]*[)]/)[0].match(/[0-9]*[|][0-9]*/)[0];
+
+            var postThanksWho = $(posts[i]).find(".post_thanks_who").get();
+            var a = $(postThanksWho).find("a").get();
+            var villageThanksCount = a.length;
+            villages.push(new Village(villageCoord, villageThanksCount));
+            }
+            catch(err){}
+        }
+    }
+    return villages;
+};
 TribalWarsAlpieThanksHelper.getThankPlayers = function(page, skipPosts = 0){
     var posts = $(page).find(".post").get();
     var postThanks = {};
@@ -232,36 +263,6 @@ TribalWarsAlpieThanksHelper.getThreadsUrlsFromMainThread = function(){
     return HttpHelper.getPage(url).then(TribalWarsAlpieThanksHelper.getThreadsUrlsFromPost);
 };
 
-// var promises = [];
-//     promises.push(HttpHelper.getPage(url).then(function (response) {
-//         player.setName(TribalWarsHtmlParser.ProfilePage.getPlayerName(response));
-//         player.setGlobalRank(TribalWarsHtmlParser.ProfilePage.getGlobalRank(response));
-//         player.setTribeName(TribalWarsHtmlParser.ProfilePage.getTribeName(response));
-//         player.setPoints(TribalWarsHtmlParser.ProfilePage.getPoints(response));
-//         var rads = TribalWarsHtmlParser.ProfilePage.getOpponentsDefeated(response);
-//         player.setRa(rads[0]);
-//         player.setRd(rads[2]);
-//         player.setRs(rads[1]);
-//     }));
-
-// var ALIES = ["1127", ];
-// var url = "https://pl126.plemiona.pl/game.php?screen=info_member&id="
-
-
-
-// function processInData(data){
-//     var returnData = {}
-//     if (data != null && data != ""){
-//         data = data.split("\n")
-//         for (var d in data){
-//             if (data[d] != null && data[d] != ""){
-//                 var line = data[d].split(";")
-//                 returnData[line[0]] = parseInt(line[1]);
-//             }
-//         }
-//     }
-//     return returnData;
-// }
 
 TribalWarsAlpieThanksHelper.fromDictionaryToList = function(dic){
     var list = [];
@@ -269,6 +270,36 @@ TribalWarsAlpieThanksHelper.fromDictionaryToList = function(dic){
         list.push(dic[p]);
     }
     return list;
+};
+TribalWarsAlpieThanksHelper.getVillagesThanksData = function(villageDic){
+
+    var promise = new Promise(function (resolve, reject) {
+        TribalWarsAlpieThanksHelper.getThreadsUrlsFromMainThread().then(function(req){
+            var promises = [];
+            for (var url of req){
+                var skip = 1;
+                var page = HttpHelper.getParameters(url, "page");
+                if(page && page>0){
+                    skip = 0;
+                }
+                promises.push(
+                    HttpHelper.getPage(url).then(function(req){
+                        var villages = TribalWarsAlpieThanksHelper.getVillagesWithThanks(req, skip);
+                        for (var village of villages){
+                            if(villageDic.hasOwnProperty(village.coord)){
+                                villageDic[village.coord].addThanks(village.thanks);
+                            }
+                            else{
+                                villageDic[village.coord] = village;
+                            }
+
+                        }
+                    }));
+            }
+            Promise.all(promises).then(function (req) { resolve(); });
+        });
+    });
+    return promise;
 };
 
 TribalWarsAlpieThanksHelper.getThanksData = function(playersDictionary, OtherPlayersDictionary){
@@ -316,7 +347,9 @@ TribalWarsAlpieThanksHelper.getThanksData = function(playersDictionary, OtherPla
 
 var row = document.getElementById("menu_row");
 var cell1 = row.insertCell(0);
-cell1.innerHTML = '<p><a id="showInDialog" href="#">Podziękowania</a></p>';
+cell1.innerHTML = '<p><a id="showThanksInDialog" href="#">Podziękowania</a></p>';
+var cell2 = row.insertCell(0);
+cell2.innerHTML = '<p><a id="showVillagesInDialog" href="#">Wioski</a></p>';
 
 function compareThanks(a,b) {
   if (a.thanks < b.thanks)
@@ -327,7 +360,7 @@ function compareThanks(a,b) {
 }
 
 
-document.getElementById('showInDialog').onclick = function (e) {
+document.getElementById('showThanksInDialog').onclick = function (e) {
     e.preventDefault();
     var playersDictionary = {};
     var OtherPlayersDictionary = {};
@@ -356,9 +389,31 @@ document.getElementById('showInDialog').onclick = function (e) {
         }
     );
 
+};
 
-    
+
+document.getElementById('showVillagesInDialog').onclick = function (e) {
+    e.preventDefault();
+    var villages = {};
+    var OtherPlayersDictionary = {};
+    TribalWarsAlpieThanksHelper.getVillagesThanksData(villages).then(
+        function(req){
+            var data = [];
+            data.push("[table]");
+            data.push("[**]Kordy[||]Liczba podziękowań[/**]");
+            for (var p in villages){
+                data.push("[*][coord]"+ villages[p].coord + "[/coord][|]" + villages[p].thanks);
+            }
+            data.push("[/table]");
+
+            Dialog.show("inDialog", '<textarea id="dataIn" cols="20" rows="30">' +data.join("\n")+ '</textarea>');
+        }
+    );
+
+
+
 
 };
+
 
 
