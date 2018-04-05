@@ -169,6 +169,13 @@ TribalWarsHtmlParser.TribeMembersPage.getPlayers = function (page) {
 };
 
 
+function comparePlayers(a,b) {
+  if (a.name.toLowerCase() < b.name.toLowerCase())
+    return -1;
+  if (a.name.toLowerCase() > b.name.toLowerCase())
+    return 1;
+  return 0;
+}
 
 TribalWarsAlpieThanksHelper.getAlliesPlayersDictionary = function(players){
     var promises = [];
@@ -177,7 +184,7 @@ TribalWarsAlpieThanksHelper.getAlliesPlayersDictionary = function(players){
             var index = i;
             var url = HttpHelper.createURL(GAME_URL, null, 'info_member', null, null, ["id",TribalWarsAlpieThanksHelper.Constants.ALLY_IDS[index]]);
             HttpHelper.getPage(url).then(function (req) {
-                players[TribalWarsAlpieThanksHelper.Constants.ALLY_NAMES[index]] = TribalWarsHtmlParser.TribeMembersPage.getPlayers(req);
+                players[TribalWarsAlpieThanksHelper.Constants.ALLY_NAMES[index]] = TribalWarsHtmlParser.TribeMembersPage.getPlayers(req).sort(comparePlayers);
                 resolve();
             });
         }));
