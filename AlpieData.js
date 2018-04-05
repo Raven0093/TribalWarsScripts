@@ -916,7 +916,7 @@ function convertToAplieData(player) {
 
     returnData.push(defTotalOwn);
 
-    returnData.push(player.villages.length * 5000);
+    returnData.push(player.villages.length * 1000);
 
 
     var defAwayInOwn =
