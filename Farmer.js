@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name         New Userscript
+// @name        Farma 132
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
-// @include  /^https://pl126\.plemiona\.pl/game\.php*.*screen=am_farm*.*/
+// @include  /^https://pl132\.plemiona\.pl/game\.php*.*screen=am_farm*.*/
 // @grant GM_setValue
 // @grant GM_getValue
 // ==/UserScript==
 
-VILLAGE_ITS = ["3752","234", "1956"];
+VILLAGE_ITS = ["28743","22738", "23753"];
 
 GM_VILLAGE_ID = "villageId";
 
@@ -35,9 +35,14 @@ UNITS = [
     [KNIGHT, "#knight"],
 ];
 
-MAX_DISTANCE_A = 10;
+MAX_DISTANCE_A = 0;
 MAX_DISTANCE_B = 40;
 
+function getParameters(url, param) {
+    var urlC = new URL(url);
+    var parVal = urlC.searchParams.get(param);
+    return parVal;
+}
 function getUnitsInVillage(){
     units =[];
     for(var i = 0; i< UNITS.length; i ++){
@@ -110,10 +115,21 @@ function farm(iconName, maxDistance, villageToFarm){
     button = $(cells).find(iconName).not(".farm_icon_disabled").get()[0];
     if(distance < maxDistance && button){
         $(button).click();
+        $(villageToFarm).remove()
         return 1;
     }else{
         return 0;
     }
+}
+
+function getMaxPage() {
+    var maxPage = 0;
+    try{
+        maxPage = $(document).find("#plunder_list_nav").get()[0].children[0].children[0].children[0].children[0].children.length
+    }
+    catch(e){
+    }
+    return maxPage;
 }
 
 
@@ -124,18 +140,41 @@ function StartFarm(){
 
     var villageToFarm = getVillageToFarm();
     if(villageToFarm){
-        if(checkUnits(unitsInVillage, unitsA)){
-            if(farm(".farm_icon_a", MAX_DISTANCE_A, villageToFarm)){
-                return setTimeout(StartFarm, 1000 + Math.random() * 300);
-            }
+        if(checkUnits(unitsInVillage, unitsA) && farm(".farm_icon_a", MAX_DISTANCE_A, villageToFarm)){
+            return setTimeout(StartFarm, 1000 + Math.random() * 300);
         }
-        if(checkUnits(unitsInVillage, unitsB)){
-            if(farm(".farm_icon_b", MAX_DISTANCE_B, villageToFarm)){
-                return setTimeout(StartFarm, 1000 + Math.random() * 300);
+        else if(checkUnits(unitsInVillage, unitsB) && farm(".farm_icon_b", MAX_DISTANCE_B, villageToFarm)){
+            return setTimeout(StartFarm, 1000 + Math.random() * 300);
+        } else {
+            console.log("next")
+
+            var page = getParameters(window.location.href, "Farm_page");
+            if (page == null || page == 0) {
+                setTimeout(nextVillage, 250000 + Math.random() * 5000);
+            } else {
+                page = parseInt(page) + 1
+                window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=0';
             }
         }
     }
-    setTimeout(nextVillage, 150000 + Math.random() * 5000);
+    else {
+        var page = getParameters(window.location.href, "Farm_page");
+        if (page == null || page == 0) {
+            window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=1'
+        } else {
+            page = parseInt(page) + 1
+            if (getMaxPage() < page) {
+                window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=' + page
+            } else {
+                setTimeout(nextVillage, 250000 + Math.random() * 5000);
+            }
+        }
+
+    }
+
 }
 
 StartFarm();
+
+
+//Jak jest wojo a odległości to włącz paf i wysyłaj od nowa
