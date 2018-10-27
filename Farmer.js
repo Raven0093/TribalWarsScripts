@@ -125,9 +125,10 @@ function farm(iconName, maxDistance, villageToFarm){
 function getMaxPage() {
     var maxPage = 0;
     try{
-        maxPage = $(document).find("#plunder_list_nav").get()[0].children[0].children[0].children[0].children[0].children.length
-    }
-    catch(e){
+        var table = $(document).find("#plunder_list_nav").get()[0].children[0].children[0].children[0].children[0].children
+        table = $(table).find(".paged-nav-item").get()
+        maxPage = table.length
+    } catch(e){
     }
     return maxPage;
 }
@@ -163,7 +164,8 @@ function StartFarm(){
             window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=1'
         } else {
             page = parseInt(page) + 1
-            if (getMaxPage() < page) {
+                    console.log(page, getMaxPage())
+            if (getMaxPage() > page) {
                 window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=' + page
             } else {
                 setTimeout(nextVillage, 250000 + Math.random() * 5000);
