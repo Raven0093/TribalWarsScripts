@@ -144,6 +144,10 @@ function getMaxPage() {
     return maxPage;
 }
 
+function setPage(page) {
+    window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=' + page
+}
+
 function nextPage(){
     if(DEBUG){
         console.log("nextPage - [->]")
@@ -159,7 +163,7 @@ function nextPage(){
         console.log("max page: ", maxPage);
     }
     if (maxPage> page) {
-        window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=' + page
+        setPage(page);
         return 1
     } else {
         return 0
@@ -195,8 +199,9 @@ function StartFarm(){
         } else {
             if(DEBUG){
                 console.log("Farm A/B - [FALSE]")
-                console.log("Next Village - [->]")
+                console.log("Set Page 1 - [->]")
             }
+            setPage(0);
             setTimeout(nextVillage, 250000 + Math.random() * 5000);
         }
     }
