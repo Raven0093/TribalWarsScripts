@@ -131,7 +131,13 @@ function getMaxPage() {
     }
     var maxPage = 0;
     try{
-        var table = $(document).find(".paged-nav-item").get();
+        var plounderList = $(document).find("#plunder_list_nav").get();
+        var select = $(plounderList).find("select").get();
+        var table = $(plounderList).find(".paged-nav-item").get();
+
+        if(select && select[0]){
+            table = select[0];
+        }
         maxPage = table.length;
     } catch(e){
         if(DEBUG){
@@ -147,6 +153,7 @@ function getMaxPage() {
 function setPage(page) {
     window.location.href = 'game.php?village=' + getParameters(window.location.href, "village") + '&screen=am_farm&order=distance&dir=asc&Farm_page=' + page
 }
+
 
 function nextPage(){
     if(DEBUG){
@@ -199,10 +206,22 @@ function StartFarm(){
         } else {
             if(DEBUG){
                 console.log("Farm A/B - [FALSE]")
-                console.log("Set Page 1 - [->]")
             }
-            setPage(0);
-            setTimeout(nextVillage, 250000 + Math.random() * 5000);
+            var page = parseInt(getParameters(window.location.href, "Farm_page"));
+            if(DEBUG){
+                console.log("page:", page)
+            }
+            if (page != null && page > 0) {
+                if(DEBUG){
+                    console.log("Set page 0 - [->]")
+                }
+                setPage(0);
+            } else {
+                if(DEBUG){
+                    console.log("Next village - [->]")
+                }
+                setTimeout(nextVillage, 250000 + Math.random() * 5000);
+            }
         }
     }
     else {
@@ -220,4 +239,7 @@ function StartFarm(){
     }
 }
 
+if(DEBUG){
+console.log("Max page: ", getMaxPage())
+}
 StartFarm();
