@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Zbieractwo 132
+// @name         Zbieractwo 132 - 8h
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
@@ -8,8 +8,8 @@
 // @grant        none
 // ==/UserScript==
 
-
-var CAPS  = [85000,34000,17000, 11330]
+//var CAPS  = [135000,54000,27000,18000] //12h
+var CAPS  = [85000,34000,17000, 11330] // 8h
 
 var SPEAR = 0;
 var SWORD = 1;
